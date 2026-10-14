@@ -101,15 +101,18 @@ const MAX_TOTAL_BYTES: u64 = 4 << 30;
 /// decompressing more than that: the sizes the archive claims are not trusted.
 fn read_entry(z: &mut zip::ZipArchive<Cursor<&[u8]>>, name: &str, limit: u64, left: &mut u64) -> Result<Option<Vec<u8>>, FormatError> {
     let too_big = || FormatError::Io(format!("{name} is larger than the {limit}-byte limit (or the archive is larger than {MAX_TOTAL_BYTES} bytes)"));
-    let Ok(f) = z.by_name(name) else { return Ok(None) };
+    let corrupt = |e: &dyn std::fmt::Display| FormatError::NotOurs(format!("corrupt {name}: {e}"));
+    let f = match z.by_name(name) {
+        Ok(f) => f,
+        Err(zip::result::ZipError::FileNotFound) => return Ok(None),
+        Err(e) => return Err(corrupt(&e)),
+    };
     let limit = limit.min(*left);
     if f.size() > limit {
         return Err(too_big());
     }
     let mut v = Vec::new();
-    if f.take(limit.saturating_add(1)).read_to_end(&mut v).is_err() {
-        return Ok(None);
-    }
+    f.take(limit.saturating_add(1)).read_to_end(&mut v).map_err(|e| corrupt(&e))?;
     let n = v.len() as u64;
     if n > limit {
         return Err(too_big());
@@ -144,10 +147,8 @@ fn load_zip(bytes: &[u8]) -> Result<Document, FormatError> {
         let Some(stem) = name.strip_prefix("assets/") else { continue };
         let Some(id) = stem.split('.').next().and_then(|s| s.parse::<u64>().ok()) else { continue };
         // Entries for assets the document doesn't have are never decompressed.
-        if !doc.assets.contains_key(&AssetId(id)) {
-            continue;
-        }
-        if let (Some(data), Some(a)) = (read_entry(&mut z, &name, MAX_ASSET_BYTES, &mut left)?, doc.assets.get_mut(&AssetId(id))) {
+        let Some(a) = doc.assets.get_mut(&AssetId(id)) else { continue };
+        if let Some(data) = read_entry(&mut z, &name, MAX_ASSET_BYTES, &mut left)? {
             let same = loaded.entry(fingerprint.hash_one(data.as_slice())).or_default();
             let data = match same.iter().find(|d| ***d == data) {
                 Some(d) => d.clone(),
@@ -576,6 +577,26 @@ mod tests {
         let back = load(&save_uncompacted(&d)).unwrap();
         assert_eq!(back.assets.len(), 1);
         assert_eq!(asset_entries(&save(&back).unwrap()), 1);
+    }
+
+    #[test]
+    fn corrupt_embedded_asset_is_an_error_not_empty_data() {
+        let mut d = Document::new(&NewDocument::default());
+        let payload = b"PAYLOADPAYLOADPAYLOAD";
+        let id = png_asset(&mut d, payload);
+        place(&mut d, id, 0.0);
+        let mut bytes = save(&d).unwrap();
+        // PNG assets are stored uncompressed: flip one payload byte so the CRC check fails.
+        let at = bytes.windows(payload.len()).position(|w| w == payload).unwrap();
+        bytes[at + 3] ^= 0xFF;
+        assert!(load(&bytes).is_err());
+        // A link-only asset (no embedded copy) still opens with empty data.
+        let mut d = Document::new(&NewDocument::default());
+        let id = png_asset(&mut d, b"");
+        Arc::make_mut(d.assets.get_mut(&id).unwrap()).link = Some("/p/a.png".into());
+        place(&mut d, id, 0.0);
+        let back = load(&save(&d).unwrap()).unwrap();
+        assert!(back.assets[&id].data.is_empty());
     }
 
     /// The object of the item `id` in a document's JSON.
