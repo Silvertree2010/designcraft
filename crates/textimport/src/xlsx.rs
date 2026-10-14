@@ -1,5 +1,5 @@
 //! Excel workbooks (`.xlsx`) → a story holding one table: the first worksheet's used range, cell
-//! values as shown text (shared and inline strings, numbers, booleans). Data merge uses
+//! values as shown text (shared, inline and formula strings, numbers, booleans). Data merge uses
 //! [`records`], which keeps empty cells and can name a sheet.
 
 use std::collections::BTreeMap;
@@ -39,6 +39,7 @@ fn value(c: &El, shared: &[String]) -> String {
     let v = || c.child("v").map(El::text).unwrap_or_default();
     match c.attr("t") {
         Some("s") => v().trim().parse::<usize>().ok().and_then(|i| shared.get(i).cloned()).unwrap_or_default(),
+        Some("str") => v(),
         Some("inlineStr") => c.child("is").map(El::text).unwrap_or_default(),
         Some("b") => {
             if v().trim() == "1" {
@@ -283,6 +284,20 @@ mod tests {
         assert!(t.nrows() * t.ncols() <= 100_000);
         assert!(!imp.warnings.is_empty());
         assert_eq!(cell_ref("XFDXFDXFDXFDXFDXFD1"), None);
+    }
+
+    /// A formula's cached text result is stored as `t="str"`; it is text, not a number.
+    #[test]
+    fn formula_text_results_keep_their_text() {
+        let wb = workbook_with(
+            r#"<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Zip</t></is></c></row><row r="2"><c r="A2" t="str"><f>TEXT(1234,"00000")</f><v>01234</v></c></row><row r="3"><c r="A3" t="str"><f>"1E5"</f><v>1E5</v></c></row></sheetData></worksheet>"#,
+        );
+        let rows = records(&wb, None).unwrap();
+        assert_eq!(rows[1][0], "01234");
+        assert_eq!(rows[2][0], "1E5");
+        let imp = import(&wb).unwrap();
+        let t = imp.story.tables.values().next().expect("a table");
+        assert_eq!(t.cell(1, 0).unwrap().text.text, "01234");
     }
 
     fn sheets(parts: &[(&str, &str)]) -> Vec<u8> {

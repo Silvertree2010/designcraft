@@ -30,3 +30,7 @@ sync_github_name = true
 
 [people.thaynej]
 real_name = "Jeffrey Thayne"
+
+[people.Silvertree2010]
+display_name = "Netter"
+sync_github_name = false
