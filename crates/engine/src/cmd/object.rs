@@ -140,14 +140,22 @@ pub fn specs() -> Vec<CommandSpec> {
         ),
         cmd!(query "transform.info", "Transform Values", [], None, "{ids?} → {scaleX, scaleY (%), rotation, shear (°), content?: the same for a placed graphic} of the first target", has_selection, transform_info),
         cmd!("object.arrange", "Arrange", ["Object", "Arrange"], None, "{to: front|forward|backward|back, ids?}", has_selection, arrange),
-        cmd!("object.bringToFront", "Bring to Front", ["Object", "Arrange"], Some("Cmd+Shift+]"), "{}", has_selection, |s, _| s
-            .execute("object.arrange", &json!({"to": "front"}))),
-        cmd!("object.bringForward", "Bring Forward", ["Object", "Arrange"], Some("Cmd+]"), "{}", has_selection, |s, _| s
-            .execute("object.arrange", &json!({"to": "forward"}))),
-        cmd!("object.sendBackward", "Send Backward", ["Object", "Arrange"], Some("Cmd+["), "{}", has_selection, |s, _| s
-            .execute("object.arrange", &json!({"to": "backward"}))),
-        cmd!("object.sendToBack", "Send to Back", ["Object", "Arrange"], Some("Cmd+Shift+["), "{}", has_selection, |s, _| s
-            .execute("object.arrange", &json!({"to": "back"}))),
+        cmd!("object.bringToFront", "Bring to Front", ["Object", "Arrange"], Some("Cmd+Shift+]"), "{}", has_selection, |s, _| arrange(
+            s,
+            &json!({"to": "front"})
+        )),
+        cmd!("object.bringForward", "Bring Forward", ["Object", "Arrange"], Some("Cmd+]"), "{}", has_selection, |s, _| arrange(
+            s,
+            &json!({"to": "forward"})
+        )),
+        cmd!("object.sendBackward", "Send Backward", ["Object", "Arrange"], Some("Cmd+["), "{}", has_selection, |s, _| arrange(
+            s,
+            &json!({"to": "backward"})
+        )),
+        cmd!("object.sendToBack", "Send to Back", ["Object", "Arrange"], Some("Cmd+Shift+["), "{}", has_selection, |s, _| arrange(
+            s,
+            &json!({"to": "back"})
+        )),
         cmd!("object.group", "Group", ["Object"], Some("Cmd+G"), "{ids?}", has_selection, group),
         cmd!("object.ungroup", "Ungroup", ["Object"], Some("Cmd+Shift+G"), "{ids?}", has_selection, ungroup),
         cmd!("object.lock", "Lock", ["Object"], Some("Cmd+L"), "{ids?}", has_selection, |s, p| set_flag(s, p, |i| i.locked = true, true)),
@@ -2449,6 +2457,27 @@ mod arrange_tests {
             s.execute("edit.redo", &json!({})).unwrap();
             assert_eq!(snapshot(&s), after);
             assert_eq!(hit(&s), Some(a));
+        }
+    }
+
+    #[test]
+    fn arrange_wrappers_add_exactly_one_undo_step() {
+        for (cmd, to) in
+            [("object.bringToFront", "front"), ("object.bringForward", "forward"), ("object.sendBackward", "backward"), ("object.sendToBack", "back")]
+        {
+            let (mut s, [a, ..]) = fixture([0, 0, 0, 0]);
+            // Pick an end of the stack the command can move.
+            let selected = if matches!(to, "front" | "forward") { a } else { stack(&s)[3] };
+            s.execute("selection.set", &json!({"ids": [selected.0]})).unwrap();
+            let before = snapshot(&s);
+            let undo_len = s.doc().unwrap().history.undo.len();
+
+            s.execute(cmd, &json!({})).unwrap();
+            assert_ne!(snapshot(&s), before, "{cmd} must change the stack");
+            assert_eq!(s.doc().unwrap().history.undo.len(), undo_len + 1, "{cmd} must add exactly one undo step");
+
+            s.execute("edit.undo", &json!({})).unwrap();
+            assert_eq!(snapshot(&s), before, "{cmd}: one undo restores the document");
         }
     }
 
