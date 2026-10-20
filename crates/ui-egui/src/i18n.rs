@@ -4661,6 +4661,9 @@ mod tests {
         assert_eq!(tr("hu", "Unknown label"), "Unknown label");
         assert_eq!(tr("hu", "Columns"), "Hasábok");
         assert_eq!(tr_context("hu", "Columns", "table"), "Oszlopok");
+        assert_eq!(tr("hu", "Columns:"), "Hasábok:");
+        assert_eq!(tr_context("hu", "Columns:", "grid"), "Oszlopok:");
+        assert_eq!(tr_context("hu", "Columns:", "unknown"), "Hasábok:");
         assert_eq!(tr("hu", "Group"), "Csoportosítás");
         assert_eq!(tr_context("hu", "Group", "selection"), "Csoport");
         assert_eq!(tr_context("hu", "Columns", "unknown"), "Hasábok");
@@ -4722,6 +4725,7 @@ mod tests {
     #[test]
     fn a_column_count_and_a_list_number_read_differently() {
         for (lang, count, numeral) in [
+            ("hu", "Darabszám:", "Szám:"),
             ("de", "Anzahl:", "Zahl:"),
             ("ja", "数:", "番号:"),
             ("uk", "Кількість:", "Номер:"),

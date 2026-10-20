@@ -3315,6 +3315,22 @@ mod tests {
         }
     }
 
+    #[test]
+    fn hungarian_menu_paths_match_the_visible_submenu_labels() {
+        // These paths are displayed by menu customization; they must use the same
+        // captions as the actual menu tree, including nested special characters.
+        for title in ["Edit", "Type", "View"] {
+            for path in submenu_paths(title) {
+                let translated = crate::i18n::tr("hu", &path);
+                if translated == path {
+                    continue; // New, uncatalogued paths still fall back to English.
+                }
+                let visible = path.split('/').map(|part| crate::i18n::tr("hu", part)).collect::<Vec<_>>().join("/");
+                assert_eq!(translated, visible, "{path}");
+            }
+        }
+    }
+
     fn walk(items: &[Item], out: &mut Vec<(String, String, Value)>) {
         for it in items {
             match it {

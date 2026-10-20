@@ -348,6 +348,8 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 Newest first.
 
+- **2026-10-20** · HU1: Hungarian review corrections distinguish numbers/counts and text/grid columns (four context captions), consistently use formal address, and align menu paths with visible labels. Added context and menu-path regression coverage; corrected localization documentation. No readiness percentage change.
+
 - **2026-10-17** · HU1: Hungarian (`hu` / Magyar) interface with 1,917 entries and two context captions, including tool names; AI-assisted and initially reviewed by a native DTP practitioner. Unknown/new strings remain English. Hungarian spelling and hyphenation remain follow-up work. No readiness percentage change.
 
 - **2026-10-16** · Threading: the loaded text cursor threads into a text frame inside a group (it hit the group and showed it could not thread); a plain click still selects the group (#1075). Gap 27 closed. No readiness percentage change.
