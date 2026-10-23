@@ -346,6 +346,8 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 ## Progress log
 
+- 2026-10-23 (HU1): repair localization test integration after merging main: restore separate all-catalog integrity, context-caption and numeral/count tests, retaining assertions from both branches; register Hungarian in the shared language and context catalogs. Retain 17 live labels missing from the known-label test list and remove 13 unused catalog entries (1,904 entries + four context captions remain).
+
 Newest first.
 
 - **2026-10-20** · HU1: Hungarian review corrections distinguish numbers/counts and text/grid columns (four context captions), consistently use formal address, and align menu paths with visible labels. Added context and menu-path regression coverage; corrected localization documentation. No readiness percentage change.
