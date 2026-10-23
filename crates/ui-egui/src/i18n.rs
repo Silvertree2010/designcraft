@@ -4613,6 +4613,7 @@ mod tests {
         ("cs", cs::TABLE),
         ("de", de::TABLE),
         ("fr", fr::TABLE),
+        ("hu", hu::TABLE),
         ("it", it::TABLE),
         ("ja", ja::TABLE),
         ("ka", ka::TABLE),
@@ -4623,8 +4624,15 @@ mod tests {
     ];
 
     /// Every per-language table `tr_context` looks up.
-    const CONTEXT_TABLES: &[(&str, &[(&str, &str, &str)])] =
-        &[("ar", ar::CONTEXT), ("cs", cs::CONTEXT), ("ja", ja::CONTEXT), ("pl", pl::CONTEXT), ("ru", ru::CONTEXT), ("uk", uk::CONTEXT)];
+    const CONTEXT_TABLES: &[(&str, &[(&str, &str, &str)])] = &[
+        ("ar", ar::CONTEXT),
+        ("cs", cs::CONTEXT),
+        ("hu", hu::CONTEXT),
+        ("ja", ja::CONTEXT),
+        ("pl", pl::CONTEXT),
+        ("ru", ru::CONTEXT),
+        ("uk", uk::CONTEXT),
+    ];
 
     /// The languages of the shared tables' columns, in column order.
     const SHARED_COLUMNS: [&str; 5] = ["de", "fr", "es", "ja", "zh"];
@@ -4661,12 +4669,12 @@ mod tests {
                 assert_eq!(tr("", key), *key);
             }
         }
-        for (key, expected) in hu::TABLE {
-            assert_eq!(tr("hu", key), *expected, "hu: {key}");
-        }
+        // Strings no catalog has stay as they are, in every language.
         let unknown = String::from("A user-defined untranslated label");
-        for lang in ["hu", "pl", "cs", "uk", "ru", "ar", "pt-br", "it", "ka", "zh", "ja", "de", "fr", "es", "", "unknown"] {
-            assert!(std::ptr::eq(tr(lang, &unknown), unknown.as_str()));
+        for lang in LANGUAGES.iter().map(|(code, _)| *code).chain(["en", "unknown"]) {
+            assert!(std::ptr::eq(tr(lang, &unknown), unknown.as_str()), "{lang}");
+            // Fixed standard names stay identical.
+            assert_eq!(tr(lang, "PDF/X-4"), "PDF/X-4", "{lang}");
         }
     }
 
@@ -4739,6 +4747,25 @@ mod tests {
             assert!(it::TABLE[..i].iter().all(|(key, _)| key != en), "duplicate {en}");
             assert!(!translation.is_empty(), "{en}");
         }
+        // Italian entries are for keys the shared or Arabic table knows. A new English string
+        // falls back to English until it is translated, so it doesn't fail here.
+        for (en, _) in it::TABLE {
+            assert!(TABLE.iter().any(|(key, _)| key == en) || ar::TABLE.iter().any(|(key, _)| key == en), "it: unknown key {en}");
+        }
+        // Every row is unique and complete.
+        for (i, (en, t)) in TABLE.iter().enumerate() {
+            assert!(TABLE[..i].iter().all(|(e, _)| e != en), "duplicate {en}");
+            assert!(t.iter().all(|x| !x.is_empty()), "{en}");
+        }
+    }
+
+    #[test]
+    fn context_captions_come_from_their_context_or_the_plain_translation() {
+        for (lang, table) in CONTEXT_TABLES {
+            for (key, scope, text) in *table {
+                assert_eq!(tr_context(lang, key, scope), *text, "{lang}: {key} ({scope})");
+            }
+        }
         for (key, scope, row) in CONTEXT {
             for (lang, shared) in SHARED_COLUMNS.into_iter().zip(row) {
                 // A language's own context table is looked up before the shared one.
@@ -4761,9 +4788,6 @@ mod tests {
         }
     }
 
-    /// Every catalog: no duplicate or stale keys, no empty translations, and placeholders, padding,
-    /// ellipses and label colons as in English. A string a catalog doesn't translate yet falls back
-    /// to English, so missing translations don't fail here.
     #[test]
     fn a_column_count_and_a_list_number_read_differently() {
         for (lang, count, numeral) in [
@@ -4776,6 +4800,38 @@ mod tests {
             ("zh", "数量：", "编号："),
         ] {
             assert_eq!((tr_context(lang, "Number:", "count"), tr(lang, "Number:")), (count, numeral), "{lang}");
+        }
+        assert_eq!(tr_context("en", "Number:", "count"), "Number:");
+        assert_eq!(tr("de", "Gutter:"), "Spaltenabstand:");
+        // The Pages panel menu.
+        for key in [
+            "Insert Pages…",
+            "Move Pages…",
+            "New Parent…",
+            "Override All Parent Page Items",
+            "Remove All Local Overrides",
+            "Detach All Objects from Parent",
+            "Create Alternate Layout…",
+            "Allow Selected Spread to Shuffle",
+        ] {
+            assert_ne!(tr("pt-br", key), key);
+        }
+        assert_ne!(tr("ar", "Apply Parent to Pages"), "Apply Parent to Pages");
+    }
+
+    /// Every catalog: no duplicate or stale keys, no empty translations, and placeholders, padding,
+    /// ellipses and label colons as in English. A string a catalog doesn't translate yet falls back
+    /// to English, so missing translations don't fail here.
+    #[test]
+    fn every_catalog_is_unique_current_and_keeps_placeholders_and_markers() {
+        // (language, key, translation) of every catalog, and every catalog's keys by name.
+        let mut entries: Vec<(&str, &str, &str)> = Vec::new();
+        let mut catalogs: Vec<(&str, HashSet<&str>)> = Vec::new();
+        for (lang, table) in LANGUAGE_TABLES {
+            let keys: HashSet<_> = table.iter().map(|(key, _)| *key).collect();
+            assert_eq!(keys.len(), table.len(), "{lang}: duplicate keys");
+            catalogs.push((*lang, keys));
+            entries.extend(table.iter().map(|(key, text)| (*lang, *key, *text)));
         }
         let shared: HashSet<_> = TABLE.iter().map(|(key, _)| *key).collect();
         assert_eq!(shared.len(), TABLE.len(), "duplicate keys in the shared table");
@@ -4919,6 +4975,23 @@ mod tests {
         keys.extend(crate::credits::SortKey::ALL.iter().flat_map(|key| [key.label().0, key.label().1]));
         // UI labels passed to `tr` that no other catalog has yet.
         keys.extend([
+            "180°",
+            "Create Links When Placing Text Files",
+            "Delete Character Style…",
+            "Delete Paragraph Style…",
+            "Delete the character style \"{name}\"?",
+            "Delete the paragraph style \"{name}\"?",
+            "IT",
+            "Replace with:",
+            "Show the Typography panel",
+            "Stroke Behind Fill",
+            "Stylistic Set",
+            "The selected fonts have no OpenType features.",
+            "This story was edited in the layout: you'll be asked before those edits are replaced",
+            "This style is in use. Text using it will be reassigned to:",
+            "VA",
+            "Y:",
+            "“{}” has been edited in this layout. Updating replaces those edits with the text from the file.",
             "(any)",
             "(unchanged)",
             "[No Language]",
