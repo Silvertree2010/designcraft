@@ -48,7 +48,7 @@ caption, table row/column movement and row-height distribution now use the exist
 catalog. Print, import options and an active table were rendered in Japanese and English with
 craft-fonts. The language totals above retain their dated measurement; this is a targeted fix.
 
-Hungarian follow-up (2026-10-17): `hu.rs` adds **1,917 entries and four context-specific
+Hungarian follow-up (2026-10-17): `hu.rs` adds **1,917 entries and two context-specific
 captions**, including the 37 tool names. This is a partial interface catalog based on an earlier
 source snapshot, not a new coverage measurement against current main. It was prepared with AI
 assistance and initially reviewed by a native Hungarian contributor with over 30 years of DTP
