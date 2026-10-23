@@ -19,6 +19,10 @@ in the UI crate appear in no catalog (some are test data or proper names), so th
 somewhat higher and every percentage below is a slight overestimate. Help: DesignCraft has no
 help content in any language (Help ▸ opens the project's pages).
 
+A missing translation never fails a test, a build or a release. `cargo xtask i18n-report` (also
+a step of `cargo xtask ci`, so the list is in every gate log) prints how many interface strings
+each language lacks, then the strings.
+
 InDesign 2026 ships 25 interface localizations (`.lproj` folders: cs, da, de, el, en, en_GB, es,
 fi, fr, hu, it, ja, ko, nb, nl, pl, pt, ro, ru, sq, sv, tr, uk, zh_CN, zh_TW); Arabic and Hebrew
 come as Middle East editions with an English or French interface and right-to-left features.

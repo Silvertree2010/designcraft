@@ -42,7 +42,7 @@ DesignCraft aims at full Adobe InDesign parity — and to be better: faster, ope
 - Graphics backend chosen before the window exists (DirectX 12 on Windows, Vulkan on Linux, Metal on macOS, OpenGL as the fallback; `WGPU_BACKEND` overrides) with a start-up fallback: a backend whose start never showed a frame is skipped at the next start and the status bar says so (`gpu.json`). Found on an AMD hybrid-graphics laptop whose Vulkan driver faulted at the first present.
 - Edit › Paste Into (copied objects become a frame's content, clipped by it; rendered, PDF and IDML both ways — verified in InDesign 2026); Polygon Settings (sides, star inset; double-click the Polygon tool).
 - Color panel (fill/stroke proxy, CMYK/RGB/Lab sliders with channel ramps, tint slider for swatches, spectrum ramp, Add to Swatches) and Color Picker (double-click the proxy); mixed colours are unnamed (not listed in Swatches until added); `object.color`, `swatch.addToSwatches`, `swatch.addUnnamed`.
-- Place text files: Word (.docx: styles by name with their attributes, bold/italic/underline/size/font, footnotes, tables, tabs, breaks), RTF and plain text, into the insertion point, the selected frame or a new frame; autoflow adds pages and threaded frames until the text fits; Remove Styles option (`designcraft-textimport`).
+- Place text files: Word (.docx: styles by name with their attributes, bold/italic/underline/size/font, footnotes, tables, tabs, breaks), RTF and plain text, into the insertion point, the selected frame or a new frame; autoflow threads frames on the pages that follow, then adds pages at the end of the document until the text fits; Remove Styles option (`designcraft-textimport`).
 - Gradient Feather (⇧G tool, `object.gradientFeather`): objects fade along a linear or radial opacity gradient, on screen and as a soft mask in PDF.
 - Script Label (`object.label`, `object.findByLabel`), alt text (`object.altText`), Isolate Blending / Knockout Group (`object.transparencyGroup`; on screen, PDF isolates), Table ▸ Sort (`table.sortRows`, numeric-aware, header/footer fixed).
 - File ▸ Export Text (`file.exportText`): a story as Text Only or RTF (fonts, styles, alignment, indents, tables as tab-separated rows); Export EPUB now asks for a path in the UI.
@@ -301,6 +301,8 @@ measured); Ready estimated.
 ## Languages
 
 Interface strings translated, of 1,724 measured. Detail: [docs/localization-parity.md](docs/localization-parity.md).
+A string without a translation shows in English and fails no check; `cargo xtask i18n-report`
+(also a `cargo xtask ci` step) lists the missing strings per language.
 
 | Language | Code | Status | Translated |
 |---|---|---|---|
