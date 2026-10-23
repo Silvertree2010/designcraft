@@ -1,6 +1,6 @@
 # Localization parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-20 · **Change:** minor (Hungarian review corrections; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-23 · **Change:** minor (Hungarian catalog test integration; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
 
 Per-language status of the DesignCraft interface and of document typesetting in each script.
 Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-typography.md),
@@ -58,12 +58,17 @@ follow-up work and are not enabled by selecting this interface language.
 Review corrections (2026-10-20) distinguish numbers from counts and text columns from grid
 columns, use formal Hungarian address consistently, and align translated menu paths with
 their visible labels. These corrections do not add new catalog keys or change coverage.
+Test integration (2026-10-23) registers Hungarian in the shared catalog checks and restores
+assertions from both merge parents. The catalog now has **1,904 entries and four context
+captions** after removing 11 untranslated interface-language names (the selector displays their
+native names directly) and two unused internal tint keys. Seventeen live UI labels are retained
+and added to the integrity test's known-label list. No used Hungarian translation was removed.
 
 ## Other shipped languages
 
 | Language | Code | UI strings translated | Status |
 |---|---|---|---|
-| Hungarian | hu | 1,917 entries + 4 context captions (2026-10-20); initial native review | partial |
+| Hungarian | hu | 1,904 entries + 4 context captions (2026-10-23); initial native review | partial |
 | Czech | cs | 1,722 (99%), plural categories handled | partial |
 | Italian | it | 1,464 (85%) | partial |
 | Ukrainian | uk | 1,432 (83%), plural categories handled | partial |
@@ -99,6 +104,7 @@ locale shaping. See [typography-parity.md](typography-parity.md).
 |---|---|---|
 | 2026-10-20 | minor | Hungarian review: four context captions, formal address, consistent menu paths; corrected other-language count to six |
 | 2026-10-17 | minor | Hungarian (`hu`) interface added: 1,917 entries and two context captions; initial native-speaker review |
+| 2026-10-23 | minor | Hungarian test integration restored; 1,904 active catalog entries and four context captions after removing unused keys |
 | 2026-10-11 | minor | Localized Japanese print, import and table controls; checked Japanese and English renders |
 | 2026-10-14 | minor | Georgian (`ka`) interface added |
 | 2026-10-10 | major | Created: catalogs measured (1,724 strings), the twelve key languages plus Italian and Ukrainian |
