@@ -4467,19 +4467,19 @@ pub fn tr<'a>(lang: &str, s: &'a str) -> &'a str {
 }
 
 fn lookup<'a>(lang: &str, s: &'a str) -> &'a str {
-    static GERMAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static JAPANESE: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static TRANSLATIONS: OnceLock<HashMap<&'static str, [&'static str; 5]>> = OnceLock::new();
-    static ARABIC: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static UKRAINIAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static PORTUGUESE_BR: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static ITALIAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static POLISH: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static RUSSIAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static CZECH: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static FRENCH: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static GEORGIAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
-    static HUNGARIAN: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
+    static GERMAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static JAPANESE: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static TRANSLATIONS: OnceLock<HashMap<&str, [&str; 5]>> = OnceLock::new();
+    static ARABIC: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static UKRAINIAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static PORTUGUESE_BR: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static ITALIAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static POLISH: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static RUSSIAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static CZECH: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static FRENCH: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static GEORGIAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
+    static HUNGARIAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
     if lang == "hu" {
         return HUNGARIAN.get_or_init(|| hu::TABLE.iter().copied().collect()).get(s).copied().unwrap_or(s);
     }
@@ -4840,9 +4840,20 @@ mod tests {
         assert_ne!(tr("ar", "Apply Parent to Pages"), "Apply Parent to Pages");
     }
 
-    /// Every catalog: no duplicate or stale keys, no empty translations, and placeholders, padding,
-    /// ellipses and label colons as in English. A string a catalog doesn't translate yet falls back
-    /// to English, so missing translations don't fail here.
+    /// The tables `tr` reads, as (language, key, translation), context captions included.
+    fn entries() -> Vec<(&'static str, &'static str, &'static str)> {
+        let mut entries: Vec<_> = LANGUAGE_TABLES.iter().flat_map(|(lang, table)| table.iter().map(|(key, text)| (*lang, *key, *text))).collect();
+        for (lang, i) in SHARED_COLUMNS.into_iter().zip(0..) {
+            entries.extend(TABLE.iter().filter_map(|(key, row)| row.get(i).map(|text| (lang, *key, *text))));
+            entries.extend(CONTEXT.iter().filter_map(|(key, _, row)| row.get(i).map(|text| (lang, *key, *text))));
+        }
+        entries.extend(CONTEXT_TABLES.iter().flat_map(|(lang, table)| table.iter().map(|(key, _, text)| (*lang, *key, *text))));
+        entries
+    }
+
+    /// Every catalog has one row per key and keeps the English placeholders. A string a catalog
+    /// doesn't translate shows in English, so a missing or empty row fails nothing here; the
+    /// `missing_translations_report` lists them.
     #[test]
     fn every_catalog_has_unique_keys_and_keeps_placeholders() {
         for (lang, i) in SHARED_COLUMNS.iter().zip(0..) {
