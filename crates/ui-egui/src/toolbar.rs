@@ -10,6 +10,8 @@ use crate::{DesignApp, icons};
 
 const BTN: f32 = 24.0;
 
+/// Draws the adaptive Tools panel with localized tool flyouts, fill/stroke controls and
+/// screen-mode buttons; flyout rows accommodate translated labels and their shortcuts.
 pub fn show(app: &mut DesignApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let frame = egui::Frame::NONE.fill(t.panel).stroke(Stroke::new(1.0, t.divider));
@@ -666,6 +668,8 @@ mod tests {
         h.get_by_label(label).rect()
     }
 
+    /// Checks every tool's translated tooltip and unchanged shortcut in both Tools-panel
+    /// column layouts, including the Hungarian Direct Selection caption.
     #[test]
     fn hungarian_tool_buttons_translate_every_tool_and_keep_shortcuts() {
         for double in [false, true] {
