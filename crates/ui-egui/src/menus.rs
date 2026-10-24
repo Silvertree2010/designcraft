@@ -3375,6 +3375,8 @@ mod tests {
         assert_eq!((mode(&app, "normal"), mode(&app, "preview")), (Some(false), Some(true)));
     }
 
+    /// Checks that translated customization paths match the visible submenu captions, while
+    /// allowing uncatalogued paths to keep their English fallback.
     #[test]
     fn hungarian_menu_paths_match_the_visible_submenu_labels() {
         // These paths are displayed by menu customization; they must use the same
@@ -3799,6 +3801,8 @@ mod tests {
         assert!(!app.ui.document_grid);
     }
 
+    /// Checks language selection and rejection of unknown language codes, Preferences dispatch,
+    /// translated menu labels and preservation of document data when switching to Arabic.
     #[test]
     fn interface_language_switches_and_validates() {
         let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
@@ -3884,6 +3888,8 @@ mod tests {
         assert!(untranslated.is_empty(), "untranslated Georgian menu labels: {untranslated:?}");
     }
 
+    /// Checks Hungarian selection, menu captions and saved UI preferences without changing
+    /// document data or translating user-defined names.
     #[test]
     fn hungarian_language_is_selectable_persisted_and_keeps_document_data() {
         let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
@@ -3904,6 +3910,8 @@ mod tests {
         assert!(crate::i18n::LANGUAGES.contains(&("hu", "Magyar")), "Preferences lists Hungarian by its own name");
     }
 
+    /// Checks Ukrainian selection, menu captions and saved UI preferences without changing
+    /// document data or translating user-defined names.
     #[test]
     fn ukrainian_language_is_selectable_persisted_and_keeps_document_data() {
         let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
@@ -3924,6 +3932,8 @@ mod tests {
         assert!(crate::i18n::LANGUAGES.contains(&("uk", "Українська")), "Preferences lists Ukrainian by its own name");
     }
 
+    /// Checks Russian selection, menu captions and saved UI preferences without changing
+    /// document data or translating user-defined names.
     #[test]
     fn russian_language_is_selectable_persisted_and_keeps_document_data() {
         let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
