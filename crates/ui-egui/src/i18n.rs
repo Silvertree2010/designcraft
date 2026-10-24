@@ -4466,6 +4466,8 @@ pub fn tr<'a>(lang: &str, s: &'a str) -> &'a str {
     if text.trim().is_empty() { s } else { text }
 }
 
+/// Looks up a label in lazily cached language tables, using the shared table where supported.
+/// Unknown languages and missing keys keep the source text; `tr` also handles blank entries.
 fn lookup<'a>(lang: &str, s: &'a str) -> &'a str {
     static GERMAN: OnceLock<HashMap<&str, &str>> = OnceLock::new();
     static JAPANESE: OnceLock<HashMap<&str, &str>> = OnceLock::new();
@@ -4695,6 +4697,8 @@ mod tests {
         }
     }
 
+    /// Checks Hungarian catalog integrity, context captions and count substitutions, including
+    /// English fallback and preservation of user-defined style and workspace names.
     #[test]
     fn hungarian_catalog_preserves_placeholders_context_and_counts() {
         let catalog: HashMap<_, _> = hu::TABLE.iter().copied().collect();
@@ -4737,6 +4741,8 @@ mod tests {
         assert_eq!(workspace_name("hu", "Saját munkaterület"), "Saját munkaterület");
     }
 
+    /// Checks translated labels and source-text fallback, plus key uniqueness and nonempty rows
+    /// in the shared, Arabic, Brazilian Portuguese and Italian catalogs.
     #[test]
     fn translates_known_strings_and_keeps_the_rest() {
         assert_eq!(tr("de", "File"), "Datei");
@@ -4809,6 +4815,7 @@ mod tests {
         }
     }
 
+    /// Keeps quantity labels distinct from numeric values and checks translated Pages-panel captions.
     #[test]
     fn a_column_count_and_a_list_number_read_differently() {
         for (lang, count, numeral) in [
