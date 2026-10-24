@@ -356,11 +356,11 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 ## Progress log
 
+- **2026-10-24** · HU1: document localization lookup, Tools-panel rendering and language, menu-path and tooltip regression tests. Documentation only; runtime behavior, translation catalogs and test assertions are unchanged. No readiness percentage change.
 - 2026-10-23 (HU1): repair localization test integration after merging main: restore separate all-catalog integrity, context-caption and numeral/count tests, retaining assertions from both branches; register Hungarian in the shared language and context catalogs. Retain 17 live labels missing from the known-label test list and remove 13 unused catalog entries (1,904 entries + four context captions remain).
 
 Newest first.
 
-- **2026-10-24** · HU1: document localization lookup, Tools-panel rendering and language, menu-path and tooltip regression tests. Documentation only; runtime behavior, translation catalogs and test assertions are unchanged. No readiness percentage change.
 - **2026-10-24** · Custom-positioned anchored objects honour Relative to Spine (`anchored.options {spineRelative}`, IDML `SpineRelative`): the settings describe a left-hand page and mirror on a right-hand page, so marginal notes stay in the outside margin on both pages of a spread. On right-hand pages they took the left-hand placement and landed in the inside margin, across the spine or over the body text. No readiness percentage change.
 - **2026-10-23** · Save and export dialogs (Save As, Save a Copy, Export PDF and the other exports, Package, libraries and books) start in the active document's folder once it has been saved, and for a document never saved in the folder of the last file saved or exported, remembered across sessions (#1653). A folder deleted since falls back to the system's choice. No readiness percentage change.
 - **2026-10-22** · Autoflow (Shift-click with the loaded text cursor, autoflow on Place, `text.thread {autoflow}`) fills the pages that follow before it adds any, as InDesign does: one frame per column on each following page, whatever else the page holds, then new pages at the end of the document. It inserted pages right after the story's last frame, in front of the document's own pages. Frames it set past the end of the text go again; a page the document had stays, and a page autoflow added only for such a frame goes with it. Smart Text Reflow of the primary text frame is unchanged. No readiness percentage change.
