@@ -664,6 +664,7 @@ mod tests {
         8.0 + super::BTN * cols + 4.0 * (cols - 1.0) + 8.0
     }
 
+    /// Returns the bounds of the labeled test widget, failing if the label cannot be found.
     fn rect(h: &egui_kittest::Harness<'static, test_window::Window>, label: &str) -> egui::Rect {
         h.get_by_label(label).rect()
     }
