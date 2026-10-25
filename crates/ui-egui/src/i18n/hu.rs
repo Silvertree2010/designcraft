@@ -130,6 +130,7 @@ pub(super) const TABLE: &[(&str, &str)] = &[
     ("Apply to Stroke", "Alkalmazás a körvonalra"),
     ("Arabic", "Arab"),
     ("Arrange", "Sorrend"),
+    ("Arrangement", "Elrendezés"),
     ("Art", "Grafika"),
     ("ArtCraft App Page", "ArtCraft alkalmazásoldal"),
     ("ArtCraft App Page…", "ArtCraft alkalmazásoldal…"),
