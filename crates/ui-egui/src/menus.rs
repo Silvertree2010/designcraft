@@ -3366,6 +3366,7 @@ mod tests {
         assert!(menu_ids("Type").contains(&"list.define"));
     }
 
+    /// Checks that screen-mode menu checkmarks follow the current Normal or Preview mode.
     #[test]
     fn screen_mode_shows_the_current_mode() {
         let mut app = DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
@@ -3783,6 +3784,7 @@ mod tests {
         assert!(!bars[0].intersects(bars[1]), "each pane keeps its own bar: {bars:?}");
     }
 
+    /// Checks the document-grid menu label, shortcut, checkmark and repeated toggle behavior.
     #[test]
     fn show_document_grid_toggles_from_the_grids_and_guides_menu() {
         let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
