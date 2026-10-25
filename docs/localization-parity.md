@@ -1,6 +1,6 @@
 # Localization parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-25 · **Change:** minor (Hungarian Data Merge arrangement caption; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-25 · **Change:** minor (Hungarian arrangement and Georgian menu captions; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
 
 Per-language status of the DesignCraft interface and of document typesetting in each script.
 Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-typography.md),
@@ -75,6 +75,11 @@ Hungarian catalog to **1,905 entries and four context captions**. The shared all
 arrangement check and the Hungarian catalog and toolbar tests are retained alongside the
 main-branch egui API update. This is a targeted addition, not a new coverage measurement.
 
+Georgian menu follow-up (2026-10-25): `File Info…` and `Check for Updates…` now have
+Georgian catalog entries. The existing complete-menu translation assertion is unchanged.
+This targeted addition retains the dated coverage figures below; the two new captions have
+not had a separate native-speaker review.
+
 ## Other shipped languages
 
 | Language | Code | UI strings translated | Status |
@@ -114,6 +119,7 @@ locale shaping. See [typography-parity.md](typography-parity.md).
 | Date | Change | Summary |
 |---|---|---|
 | 2026-10-25 | minor | Hungarian Data Merge arrangement caption added; 1,905 entries and four context captions; both merge parents' tests retained |
+| 2026-10-25 | minor | Georgian File Info and Check for Updates captions added; complete-menu regression retained |
 | 2026-10-20 | minor | Hungarian review: four context captions, formal address, consistent menu paths; corrected other-language count to six |
 | 2026-10-17 | minor | Hungarian (`hu`) interface added: 1,917 entries and two context captions; initial native-speaker review |
 | 2026-10-23 | minor | Hungarian test integration restored; 1,904 active catalog entries and four context captions after removing unused keys |
