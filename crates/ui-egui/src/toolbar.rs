@@ -669,10 +669,21 @@ mod tests {
         h.get_by_label(label).rect()
     }
 
-    /// Checks every tool's translated tooltip and unchanged shortcut in both Tools-panel
-    /// column layouts, including the Hungarian Direct Selection caption.
+    /// Checks translated tooltips and right-click flyout rows in both Tools-panel layouts,
+    /// including painted labels, unchanged shortcuts and unclipped, nonoverlapping text.
     #[test]
     fn hungarian_tool_buttons_translate_every_tool_and_keep_shortcuts() {
+        use egui::{Event, Modifiers, PointerButton};
+
+        /// Collects painted text bounds and their clip rectangles, including nested shapes.
+        fn collect_text(shape: &egui::Shape, clip: egui::Rect, texts: &mut Vec<(String, egui::Rect, egui::Rect)>) {
+            match shape {
+                egui::Shape::Text(text) => texts.push((text.galley.text().to_owned(), text.visual_bounding_rect(), clip)),
+                egui::Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect_text(shape, clip, texts)),
+                _ => {}
+            }
+        }
+
         for double in [false, true] {
             let mut app = app(double);
             app.ui.language = "hu".into();
@@ -687,6 +698,57 @@ mod tests {
                     None => label.to_owned(),
                 };
                 assert!(rect(&h, &tip).is_finite(), "{tip}");
+            }
+            for (gi, group) in designcraft_tools::TOOL_GROUPS.iter().enumerate() {
+                // Single tools have no flyout; the collector group is split into separate
+                // buttons in two-column mode and is covered by the tooltip checks above.
+                if group.len() < 2 || (double && designcraft_tools::SPLIT_IN_TWO_COLUMNS.contains(&group[0].id)) {
+                    continue;
+                }
+                let first = group[0];
+                h.state_mut().app.run("tool.select", serde_json::json!({"tool": first.id})).unwrap();
+                h.run_steps(3);
+                let label = crate::i18n::tr("hu", first.label);
+                let tip = first.shortcut.map_or_else(|| label.to_owned(), |shortcut| format!("{label} ({shortcut})"));
+                let at = rect(&h, &tip).center();
+                h.input_mut().events.push(Event::PointerMoved(at));
+                for pressed in [true, false] {
+                    h.input_mut().events.push(Event::PointerButton {
+                        pos: at,
+                        button: PointerButton::Secondary,
+                        pressed,
+                        modifiers: Modifiers::NONE,
+                    });
+                }
+                h.run_steps(3);
+                assert_eq!(h.state().app.ui.flyout, Some(gi), "right-click opens {} (double={double})", first.id);
+                let mut texts = Vec::new();
+                for shape in &h.output().shapes {
+                    collect_text(&shape.shape, shape.clip_rect, &mut texts);
+                }
+                for tool in *group {
+                    let label = crate::i18n::tr("hu", tool.label);
+                    // Flyout accessibility labels omit the shortcut; inspect the painted
+                    // text inside this row so another button cannot satisfy the assertion.
+                    let row = rect(&h, label);
+                    assert!(row.is_finite() && row.is_positive(), "{label}");
+                    let painted = |expected: &str| {
+                        let (_, bounds, clip) = texts
+                            .iter()
+                            .find(|(text, bounds, _)| text == expected && row.contains(bounds.center()))
+                            .unwrap_or_else(|| panic!("missing flyout text {expected:?} for {} (double={double})", tool.id));
+                        assert!(row.contains_rect(*bounds) && clip.contains_rect(*bounds), "clipped flyout text {expected:?}: {bounds:?}");
+                        *bounds
+                    };
+                    let label_bounds = painted(label);
+                    if let Some(shortcut) = tool.shortcut {
+                        let shortcut_bounds = painted(shortcut);
+                        assert!(label_bounds.right() < shortcut_bounds.left(), "label overlaps shortcut for {} (double={double})", tool.id);
+                    }
+                }
+                h.key_press(egui::Key::Escape);
+                h.run_steps(2);
+                assert!(h.state().app.ui.flyout.is_none());
             }
             assert_eq!(crate::i18n::tr("hu", "Direct Selection Tool"), "Közvetlen kijelölő eszköz");
         }
