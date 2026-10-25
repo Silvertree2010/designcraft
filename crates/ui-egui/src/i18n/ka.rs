@@ -5,6 +5,7 @@
 //! the code or the command table use.
 pub(super) const TABLE: &[(&str, &str)] = &[
     ("File", "ფაილი"),
+    ("File Info…", "ფაილის ინფორმაცია…"),
     ("Edit", "რედაქტირება"),
     ("Layout", "განლაგება"),
     ("Type", "ტექსტი"),
@@ -431,6 +432,7 @@ pub(super) const TABLE: &[(&str, &str)] = &[
     ("Ungroup Color Group", "ფერების ჯგუფის დაშლა"),
     ("Unmerge", "შერწყმის გაუქმება"),
     ("Update", "განახლება"),
+    ("Check for Updates…", "განახლებების შემოწმება…"),
     ("Update Numbering", "დანომვრის განახლება"),
     ("Use Global Light", "გლობალური განათების გამოყენება"),
     ("User Dictionary", "მომხმარებლის ლექსიკონი"),
