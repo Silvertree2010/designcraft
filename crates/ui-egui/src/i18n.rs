@@ -4667,6 +4667,7 @@ mod tests {
         if text.trim().is_empty() { english } else { text }
     }
 
+    /// Checks cached catalog lookup across language switches, including source-text fallback.
     #[test]
     fn cached_lookup_preserves_every_translation_across_language_switches() {
         let own = |lang: &str, key: &str| {
@@ -4782,6 +4783,7 @@ mod tests {
         }
     }
 
+    /// Checks language-specific context precedence and fallback to the plain translation.
     #[test]
     fn context_captions_come_from_their_context_or_the_plain_translation() {
         for (lang, table) in CONTEXT_TABLES {
