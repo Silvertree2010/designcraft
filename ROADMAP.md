@@ -356,6 +356,7 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 ## Progress log
 
+- **2026-10-25** · HU1: extend Hungarian toolbar regression coverage through real right-click flyouts in both column layouts, checking translated row labels, painted shortcuts, clipping and overlap. Existing assertions and runtime behavior are unchanged. No readiness percentage change.
 - **2026-10-24** · HU1: document localization lookup, Tools-panel rendering and language, menu-path and tooltip regression tests. Documentation only; runtime behavior, translation catalogs and test assertions are unchanged. No readiness percentage change.
 - 2026-10-23 (HU1): repair localization test integration after merging main: restore separate all-catalog integrity, context-caption and numeral/count tests, retaining assertions from both branches; register Hungarian in the shared language and context catalogs. Retain 17 live labels missing from the known-label test list and remove 13 unused catalog entries (1,904 entries + four context captions remain).
 
