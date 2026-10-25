@@ -1,6 +1,6 @@
 # Localization parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-23 · **Change:** minor (Hungarian catalog test integration; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-25 · **Change:** minor (Hungarian Data Merge arrangement caption; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
 
 Per-language status of the DesignCraft interface and of document typesetting in each script.
 Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-typography.md),
@@ -19,9 +19,11 @@ in the UI crate appear in no catalog (some are test data or proper names), so th
 somewhat higher and every percentage below is a slight overestimate. Help: DesignCraft has no
 help content in any language (Help ▸ opens the project's pages).
 
-A missing translation never fails a test, a build or a release. `cargo xtask i18n-report` (also
-a step of `cargo xtask ci`, so the list is in every gate log) prints how many interface strings
-each language lacks, then the strings.
+Missing translations normally fall back to English and are reported without blocking a build.
+Targeted regression tests can require specific captions, such as the Data Merge arrangement
+label, in every registered interface language. `cargo xtask i18n-report` (also a step of
+`cargo xtask ci`, so the list is in every gate log) prints how many interface strings each
+language lacks, then the strings.
 
 InDesign 2026 ships 25 interface localizations (`.lproj` folders: cs, da, de, el, en, en_GB, es,
 fi, fr, hu, it, ja, ko, nb, nl, pl, pt, ro, ru, sq, sv, tr, uk, zh_CN, zh_TW); Arabic and Hebrew
@@ -63,16 +65,21 @@ Review corrections (2026-10-20) distinguish numbers from counts and text columns
 columns, use formal Hungarian address consistently, and align translated menu paths with
 their visible labels. These corrections do not add new catalog keys or change coverage.
 Test integration (2026-10-23) registers Hungarian in the shared catalog checks and restores
-assertions from both merge parents. The catalog now has **1,904 entries and four context
+assertions from both merge parents. That snapshot has **1,904 entries and four context
 captions** after removing 11 untranslated interface-language names (the selector displays their
 native names directly) and two unused internal tint keys. Seventeen live UI labels are retained
 and added to the integrity test's known-label list. No used Hungarian translation was removed.
+
+Data Merge follow-up (2026-10-25): `Arrangement` is translated as `Elrendezés`, bringing the
+Hungarian catalog to **1,905 entries and four context captions**. The shared all-language
+arrangement check and the Hungarian catalog and toolbar tests are retained alongside the
+main-branch egui API update. This is a targeted addition, not a new coverage measurement.
 
 ## Other shipped languages
 
 | Language | Code | UI strings translated | Status |
 |---|---|---|---|
-| Hungarian | hu | 1,904 entries + 4 context captions (2026-10-23); initial native review | partial |
+| Hungarian | hu | 1,905 entries + 4 context captions (2026-10-25); initial native review | partial |
 | Czech | cs | 1,722 (99%), plural categories handled | partial |
 | Italian | it | 1,464 (85%) | partial |
 | Ukrainian | uk | 1,432 (83%), plural categories handled | partial |
@@ -106,6 +113,7 @@ locale shaping. See [typography-parity.md](typography-parity.md).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-25 | minor | Hungarian Data Merge arrangement caption added; 1,905 entries and four context captions; both merge parents' tests retained |
 | 2026-10-20 | minor | Hungarian review: four context captions, formal address, consistent menu paths; corrected other-language count to six |
 | 2026-10-17 | minor | Hungarian (`hu`) interface added: 1,917 entries and two context captions; initial native-speaker review |
 | 2026-10-23 | minor | Hungarian test integration restored; 1,904 active catalog entries and four context captions after removing unused keys |
