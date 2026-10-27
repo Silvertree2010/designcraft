@@ -1,6 +1,6 @@
 # Localization parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-25 · **Change:** minor (Hungarian arrangement and Georgian menu captions; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-27 · **Change:** minor (shared-module integration and retained localization regressions; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
 
 Per-language status of the DesignCraft interface and of document typesetting in each script.
 Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-typography.md),
@@ -10,7 +10,7 @@ Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-ty
 
 ## How it was measured
 
-Interface strings live in `crates/ui-egui/src/i18n.rs` (a shared table with German, French,
+Interface strings live in `crates/ui-egui/src/i18n/table.rs` (a shared table with German, French,
 Spanish, Japanese and Simplified Chinese columns) and `crates/ui-egui/src/i18n/{ar,cs,de,fr,hu,it,ja,ka,pl,pt_br,ru,uk}.rs`.
 Untranslated strings fall back to English. A script (2026-10-10) built the set of English
 interface strings as the union of every catalog's keys, every engine command label and every
@@ -80,6 +80,13 @@ Georgian catalog entries. The existing complete-menu translation assertion is un
 This targeted addition retains the dated coverage figures below; the two new captions have
 not had a separate native-speaker review.
 
+Module-layout integration (2026-10-27): catalog lookup stays in `i18n.rs`, while the shared
+table and localization tests live in `i18n/table.rs` and `i18n/tests.rs`. Menu and toolbar
+regressions from both branches are retained in `menus/tests.rs` and `toolbar/tests.rs`.
+Hungarian catalog contents and the dated coverage measurements are unchanged. Toolbar
+coverage follows the current platform-specific keymap captions and checks a user-assigned
+chord alongside translated flyout text; row sizing measures the displayed shortcut.
+
 ## Other shipped languages
 
 | Language | Code | UI strings translated | Status |
@@ -118,6 +125,7 @@ locale shaping. See [typography-parity.md](typography-parity.md).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-27 | minor | Adopt shared module layout; preserve both parents' tests and all Hungarian catalog entries |
 | 2026-10-25 | minor | Hungarian Data Merge arrangement caption added; 1,905 entries and four context captions; both merge parents' tests retained |
 | 2026-10-25 | minor | Georgian File Info and Check for Updates captions added; complete-menu regression retained |
 | 2026-10-20 | minor | Hungarian review: four context captions, formal address, consistent menu paths; corrected other-language count to six |
