@@ -378,6 +378,7 @@ list) · [roadmap.md](docs/roadmap.md) (milestones, plan) · [parity-checklist.m
 
 ## Progress log
 
+- **2026-10-27** · HU1: integrate Hungarian localization with the shared module layout; retain both parents' localization, menu, toolbar and panel-docking tests and all Hungarian catalog entries. Adapt toolbar tests and flyout sizing to platform-formatted and user-assigned shortcuts; add direct lookup assertions for the repaired Georgian menu captions. No readiness percentage change.
 - **2026-10-25** · HU1: extend Hungarian toolbar regression coverage through real right-click flyouts in both column layouts, checking translated row labels, painted shortcuts, clipping and overlap. Existing assertions and runtime behavior are unchanged. No readiness percentage change.
 - **2026-10-25** · HU1: retain both branches' localization and toolbar regression tests while adopting the updated egui button role; translate Data Merge Arrangement as Elrendezés (1,905 Hungarian entries and four context captions). No readiness percentage change.
 - **2026-10-25** · HU1: add the two missing Georgian File Info and Check for Updates menu captions while retaining the complete-menu regression unchanged. No readiness percentage change.
