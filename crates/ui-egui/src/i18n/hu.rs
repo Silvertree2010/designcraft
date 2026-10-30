@@ -1493,6 +1493,7 @@ pub(super) const TABLE: &[(&str, &str)] = &[
     ("Show in the text", "Megjelenítés a szövegben"),
     ("Show the Typography panel", "Tipográfia panel megjelenítése"),
     ("Show/Hide Baseline Grid", "Alapvonalrács megjelenítése/elrejtése"),
+    ("Show/Hide Depth Ruler", "Mélységmérő megjelenítése/elrejtése"),
     ("Show/Hide Frame Edges", "Keretélek megjelenítése/elrejtése"),
     ("Show/Hide Guides", "Segédvonalak megjelenítése/elrejtése"),
     ("Show/Hide Hidden Characters", "Rejtett karakterek megjelenítése/elrejtése"),
