@@ -1,6 +1,6 @@
 # Localization parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-27 · **Change:** minor (shared-module integration and retained localization regressions; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-30 · **Change:** minor (current-main integration with retained catalogs and regression tests; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
 
 Per-language status of the DesignCraft interface and of document typesetting in each script.
 Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-typography.md),
@@ -87,11 +87,22 @@ Hungarian catalog contents and the dated coverage measurements are unchanged. To
 coverage follows the current platform-specific keymap captions and checks a user-assigned
 chord alongside translated flyout text; row sizing measures the displayed shortcut.
 
+Main integration (2026-10-30): retain every prior Hungarian entry and both branches’
+localization, menu and toolbar regressions while adopting upstream’s current file-dialog test
+harness and toolbar proxy refactor. Add `Show/Hide Depth Ruler` as `Mélységmérő
+megjelenítése/elrejtése`, bringing the catalog to **1,906 entries and four context captions**.
+The upstream all-language depth-ruler assertion is retained. The unchanged complete Georgian
+menu assertions run through a helper so the existing language-switch test meets upstream’s
+new complexity limit. The two Georgian menu captions now also exist in main; retain each
+identical translation once, keeping the direct lookup and complete-menu assertions. The
+progress log keeps both branches’ dated entries; this targeted addition is not a new coverage
+measurement.
+
 ## Other shipped languages
 
 | Language | Code | UI strings translated | Status |
 |---|---|---|---|
-| Hungarian | hu | 1,905 entries + 4 context captions (2026-10-25); initial native review | partial |
+| Hungarian | hu | 1,906 entries + 4 context captions (2026-10-30); initial catalog native-reviewed | partial |
 | Czech | cs | 1,722 (99%), plural categories handled | partial |
 | Italian | it | 1,464 (85%) | partial |
 | Ukrainian | uk | 1,432 (83%), plural categories handled | partial |
@@ -128,6 +139,7 @@ German variants have no automatic hyphenation; their German shaping and quotes a
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-30 | minor | Integrate current main; retain both branches’ entries/tests; add Hungarian Depth Ruler caption (1,906 entries + four context captions) |
 | 2026-10-27 | minor | Adopt shared module layout; preserve both parents' tests and all Hungarian catalog entries |
 | 2026-10-25 | minor | Hungarian Data Merge arrangement caption added; 1,905 entries and four context captions; both merge parents' tests retained |
 | 2026-10-25 | minor | Georgian File Info and Check for Updates captions added; complete-menu regression retained |
