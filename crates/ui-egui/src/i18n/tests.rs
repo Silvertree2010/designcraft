@@ -13,12 +13,20 @@ const LANGUAGE_TABLES: &[(&str, &[(&str, &str)])] = &[
     ("pl", pl::TABLE),
     ("pt-br", pt_br::TABLE),
     ("ru", ru::TABLE),
+    ("sv", sv::TABLE),
     ("uk", uk::TABLE),
 ];
 
 /// Every per-language table `tr_context` looks up.
-const CONTEXT_TABLES: &[(&str, &[(&str, &str, &str)])] =
-    &[("ar", ar::CONTEXT), ("cs", cs::CONTEXT), ("ja", ja::CONTEXT), ("pl", pl::CONTEXT), ("ru", ru::CONTEXT), ("uk", uk::CONTEXT)];
+const CONTEXT_TABLES: &[(&str, &[(&str, &str, &str)])] = &[
+    ("ar", ar::CONTEXT),
+    ("cs", cs::CONTEXT),
+    ("ja", ja::CONTEXT),
+    ("pl", pl::CONTEXT),
+    ("ru", ru::CONTEXT),
+    ("sv", sv::CONTEXT),
+    ("uk", uk::CONTEXT),
+];
 
 /// The languages of the shared tables' columns, in column order.
 const SHARED_COLUMNS: [&str; 5] = ["de", "fr", "es", "ja", "zh"];
