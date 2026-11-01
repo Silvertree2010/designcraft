@@ -14,7 +14,7 @@ use crate::{Result, Session};
 
 pub fn specs() -> Vec<CommandSpec> {
     vec![
-        cmd!(query "font.list", "Fonts in Document", [], None, "{} → [{family, style, characters, missing, styleMissing, source: bundled|installed|document|added (null when missing), matchStatus: exact|styleSubstitute|missing, resolvedFamily, resolvedStyle, replacementFamily, replacementStyle, fsType, restrictedLicence, bitmapOnly, noSubsetting, editable, previewPrint (the OS/2 fsType embedding bits of the face that sets the text and what they mean; null when missing)}] (missing first)", has_doc, |s, _| {
+        cmd!(query "font.list", "Fonts in Document", [], None, "{} → [{family, style, characters, missing, styleMissing, source: bundled|installed|document|added (null when missing), matchStatus: exact|styleSubstitute|missing, resolvedFamily, resolvedStyle, replacementFamily, replacementStyle, fsType, restrictedLicence, bitmapOnly, noSubsetting, editable, previewPrint (the OS/2 fsType embedding bits of the face that sets the text and what they mean; null when missing or the face has no OS/2 table)}] (missing first)", has_doc, |s, _| {
             Ok(Value::Array(list(&s.doc()?.doc)))
         }),
         cmd!(
@@ -75,7 +75,8 @@ pub(super) struct UsedFont {
     pub resolved_style: String,
     pub replacement_family: String,
     pub replacement_style: String,
-    /// The OS/2 `fsType` of the face that sets the text (`resolved_*`); None when missing.
+    /// The OS/2 `fsType` of the face that sets the text (`resolved_*`); None when missing or the
+    /// face has no OS/2 table (as are the bits below).
     pub fs_type: Option<u16>,
     /// Restricted License embedding (bit 1 without bits 2–3).
     pub restricted_licence: Option<bool>,
@@ -136,7 +137,7 @@ pub(super) fn used_fonts(d: &Document) -> Vec<UsedFont> {
             let resolved = db.face(&family, &style);
             let characters: Vec<char> = characters.into_iter().filter(|c| !('\u{E000}'..='\u{E1FF}').contains(c)).collect();
             let replacement = db.replacement_face(&family, &style, &characters);
-            let fs_type = (!missing).then(|| resolved.fs_type());
+            let fs_type = (!missing).then(|| resolved.fs_type()).flatten();
             let bit = |mask: u16| fs_type.map(|t| t & mask != 0);
             let source = (!missing).then(|| match db.face(&family, &style).source {
                 FontSource::Bundled => "bundled",
@@ -163,7 +164,7 @@ pub(super) fn used_fonts(d: &Document) -> Vec<UsedFont> {
                 replacement_family: replacement.family.clone(),
                 replacement_style: replacement.style.clone(),
                 fs_type,
-                restricted_licence: (!missing).then(|| resolved.restricted_licence()),
+                restricted_licence: fs_type.map(|_| resolved.restricted_licence()),
                 bitmap_only: bit(0x0200),
                 no_subsetting: bit(0x0100),
                 editable: bit(0x0008),
@@ -321,18 +322,20 @@ mod tests {
     /// refuse a face whose licence doesn't allow the export it is about to make.
     #[test]
     fn font_list_reports_the_embedding_licence_bits() {
-        use designcraft_fonts::testing::{font_with, with_fs_type};
+        use designcraft_fonts::testing::{font_with, with_fs_type, with_table_len};
         const FAMILY: &str = "DocFont List FsType";
         const FS_TYPES: [u16; 3] = [0x0002, 0x0108, 0x0204];
         for fs_type in FS_TYPES {
             designcraft_fonts::FontDb::global()
                 .add_font(with_fs_type(font_with(&format!("{FAMILY} {fs_type:04x}"), &['W']).unwrap(), fs_type).unwrap());
         }
+        // An OS/2 table cut to nothing can't be read: as if the font had none.
+        designcraft_fonts::FontDb::global().add_font(with_table_len(font_with(&format!("{FAMILY} no OS/2"), &['W']).unwrap(), b"OS/2", 0).unwrap());
         let mut s = Session::new();
         s.execute("file.new", &json!({})).unwrap();
-        // "W W W Plain Gone": each W in one of the fonts above, Plain in the default (bundled)
+        // "W W W W Plain Gone": each W in one of the fonts above, Plain in the default (bundled)
         // font, Gone in a family that isn't available.
-        let r = s.execute("frame.create", &json!({"rect": [72, 72, 400, 300], "content": "text", "text": "W W W Plain Gone"})).unwrap();
+        let r = s.execute("frame.create", &json!({"rect": [72, 72, 400, 300], "content": "text", "text": "W W W W Plain Gone"})).unwrap();
         let sid = s.doc().unwrap().doc.item(designcraft_doc::ItemId(r["id"].as_u64().unwrap())).unwrap().text_frame().unwrap().story;
         let set = |s: &mut Session, at: usize, end: usize, family: &str| {
             s.execute("text.select", &json!({"story": sid.0, "anchor": at, "focus": end})).unwrap();
@@ -341,7 +344,8 @@ mod tests {
         for (i, fs_type) in FS_TYPES.into_iter().enumerate() {
             set(&mut s, i * 2, i * 2 + 1, &format!("{FAMILY} {fs_type:04x}"));
         }
-        set(&mut s, 12, 16, "Nonexistent Sans");
+        set(&mut s, 6, 7, &format!("{FAMILY} no OS/2"));
+        set(&mut s, 14, 18, "Nonexistent Sans");
         let l = s.execute("font.list", &json!({})).unwrap();
         let rows = l.as_array().unwrap();
         let entry = |family: &str| rows.iter().find(|f| f["family"] == family).unwrap_or_else(|| panic!("{family}: {l}"));
@@ -354,6 +358,9 @@ mod tests {
         // The bundled fonts are OFL: installable embedding, every bit clear.
         let bundled = rows.iter().find(|r| r["source"] == "bundled").unwrap_or_else(|| panic!("no bundled face: {l}"));
         assert_eq!(bits(bundled), [json!(0), f.clone(), f.clone(), f.clone(), f.clone(), f], "{l}");
+        // A face without an OS/2 table doesn't say what its licence allows.
+        assert_eq!(entry(&format!("{FAMILY} no OS/2"))["missing"], false, "{l}");
+        assert_eq!(bits(entry(&format!("{FAMILY} no OS/2"))), [(); 6].map(|()| Value::Null), "{l}");
         // A missing face has no file to read.
         let missing = entry("Nonexistent Sans");
         assert_eq!(missing["missing"], true, "{l}");
