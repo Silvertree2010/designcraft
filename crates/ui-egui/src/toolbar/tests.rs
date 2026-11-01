@@ -24,20 +24,20 @@ fn rect(h: &egui_kittest::Harness<'static, test_window::Window>, label: &str) ->
     h.get_by_label(label).rect()
 }
 
+/// Collects painted text bounds and their clip rectangles, including nested shapes.
+fn collect_text(shape: &egui::Shape, clip: egui::Rect, texts: &mut Vec<(String, egui::Rect, egui::Rect)>) {
+    match shape {
+        egui::Shape::Text(text) => texts.push((text.galley.text().to_owned(), text.visual_bounding_rect(), clip)),
+        egui::Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect_text(shape, clip, texts)),
+        _ => {}
+    }
+}
+
 /// Checks translated tooltips and right-click flyout rows in both Tools-panel layouts,
 /// including painted labels, unchanged shortcuts and unclipped, nonoverlapping text.
 #[test]
 fn hungarian_tool_buttons_translate_every_tool_and_keep_shortcuts() {
     use egui::{Event, Modifiers, PointerButton};
-
-    /// Collects painted text bounds and their clip rectangles, including nested shapes.
-    fn collect_text(shape: &egui::Shape, clip: egui::Rect, texts: &mut Vec<(String, egui::Rect, egui::Rect)>) {
-        match shape {
-            egui::Shape::Text(text) => texts.push((text.galley.text().to_owned(), text.visual_bounding_rect(), clip)),
-            egui::Shape::Vec(shapes) => shapes.iter().for_each(|shape| collect_text(shape, clip, texts)),
-            _ => {}
-        }
-    }
 
     for double in [false, true] {
         let mut app = app(double);
@@ -110,6 +110,83 @@ fn hungarian_tool_buttons_translate_every_tool_and_keep_shortcuts() {
             assert!(h.state().app.ui.flyout.is_none());
         }
         assert_eq!(crate::i18n::tr("hu", "Direct Selection Tool"), "Közvetlen kijelölő eszköz");
+    }
+}
+
+/// Keeps long translated flyout rows reachable by scrolling in a narrow viewport,
+/// preserving the custom shortcut and selection through actual pointer input.
+#[test]
+fn hungarian_flyout_scrolls_horizontally_in_narrow_windows() {
+    use egui::{Event, Modifiers, PointerButton};
+
+    for double in [false, true] {
+        for width in [180.0, 240.0] {
+            let mut app = app(double);
+            app.ui.language = "hu".into();
+            let chord = "Ctrl+Alt+Shift+F12";
+            app.run(
+                "window.setShortcut",
+                serde_json::json!({"id": "tool.select", "params": {"tool": "ellipseFrame"}, "shortcut": chord, "steal": true}),
+            )
+            .unwrap();
+            app.select_tool("rectangleFrame");
+            let mut h = test_window::open(app, vec2(width, 1000.0));
+            let at = rect(&h, "Téglalapkeret eszköz (F)").center();
+            h.input_mut().events.push(Event::PointerMoved(at));
+            for pressed in [true, false] {
+                h.input_mut().events.push(Event::PointerButton { pos: at, button: PointerButton::Secondary, pressed, modifiers: Modifiers::NONE });
+            }
+            h.run_steps(3);
+            let gi = h.state().app.ui.flyout.unwrap();
+            let area = h.ctx.memory(|m| m.area_rect(egui::Id::unique(("flyout", gi)))).unwrap();
+            let viewport = h.ctx.content_rect();
+            assert!(viewport.expand(0.5).contains_rect(area), "flyout {area:?} exceeds viewport {viewport:?}");
+            let label = "Ellipsziskeret eszköz";
+            let shortcut = crate::menus::shortcut_text(chord);
+            let painted = |h: &egui_kittest::Harness<'static, test_window::Window>, text: &str| {
+                let row = rect(h, label);
+                let mut texts = Vec::new();
+                for shape in &h.output().shapes {
+                    collect_text(&shape.shape, shape.clip_rect, &mut texts);
+                }
+                let (_, bounds, clip) = texts.into_iter().find(|(t, b, _)| t == text && row.contains(b.center())).unwrap();
+                (bounds, clip)
+            };
+            let (label_bounds, label_clip) = painted(&h, label);
+            assert!(label_clip.contains_rect(label_bounds), "label must be readable at the start");
+            let (before, clip) = painted(&h, &shortcut);
+            let oversized = rect(&h, label).width() > clip.width();
+            if width == 180.0 {
+                assert!(oversized, "the tighter case must exercise horizontal overflow on every platform");
+            }
+            review_shot(&mut h, &format!("flyout-{width}-double-{double}-left.png"));
+            if oversized {
+                assert!(!clip.contains_rect(before), "the shortcut starts beyond the narrow viewport");
+                wheel(&mut h, area.center(), vec2(-1000.0, 0.0));
+                let (after, clip) = painted(&h, &shortcut);
+                assert!(clip.contains_rect(after), "scrolling must make the complete shortcut readable");
+                assert!(after.left() < before.left(), "horizontal input must move the row");
+            } else {
+                assert!(clip.contains_rect(before));
+            }
+            review_shot(&mut h, &format!("flyout-{width}-double-{double}-right.png"));
+            assert_eq!(crate::menus::tool_shortcut_label(&h.state().app, "ellipseFrame"), Some(shortcut));
+            let at = rect(&h, label).intersect(area).center();
+            h.input_mut().events.push(Event::PointerMoved(at));
+            for pressed in [true, false] {
+                h.input_mut().events.push(Event::PointerButton { pos: at, button: PointerButton::Primary, pressed, modifiers: Modifiers::NONE });
+            }
+            h.run_steps(3);
+            assert_eq!(h.state().app.session.tool_id(), "ellipseFrame");
+            assert!(h.state().app.ui.flyout.is_none());
+        }
+    }
+}
+
+/// Saves synthetic UI evidence only when the local review explicitly requests it.
+fn review_shot(h: &mut egui_kittest::Harness<'static, test_window::Window>, name: &str) {
+    if let Some(dir) = std::env::var_os("DESIGNCRAFT_HU_REVIEW_SHOTS") {
+        h.render().unwrap().save(std::path::Path::new(&dir).join(name)).unwrap();
     }
 }
 
