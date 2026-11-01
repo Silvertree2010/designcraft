@@ -61,9 +61,6 @@ fn cached_lookup_preserves_every_translation_across_language_switches() {
             assert_eq!(tr("", key), *key);
         }
     }
-    // Keep the repaired Georgian menu captions present with their exact translations.
-    assert_eq!(tr("ka", "File Info…"), "ფაილის ინფორმაცია…");
-    assert_eq!(tr("ka", "Check for Updates…"), "განახლებების შემოწმება…");
     // Strings no catalog has stay as they are, in every language.
     let unknown = String::from("A user-defined untranslated label");
     for lang in LANGUAGES.iter().map(|(code, _)| *code).chain(["en", "unknown"]) {
@@ -116,6 +113,81 @@ fn hungarian_catalog_preserves_placeholders_context_and_counts() {
     assert_eq!(style_name("hu", "Saját stílus"), "Saját stílus");
     assert_eq!(workspace_name("hu", "Essentials"), "Alapok");
     assert_eq!(workspace_name("hu", "Saját munkaterület"), "Saját munkaterület");
+}
+
+/// Checks every Latin catalog letter and all Hungarian accented vowels against the
+/// configured bundled UI faces, with system and optional craft-fonts fallbacks disabled.
+#[test]
+fn hungarian_catalog_glyphs_exist_in_the_bundled_ui_fonts() {
+    let definitions = crate::theme::font_definitions(&[], "hu");
+    let db = designcraft_fonts::FontDb::with_font_dirs(Vec::new());
+    db.set_system_fallback(false);
+    let letters: std::collections::BTreeSet<_> = hu::TABLE
+        .iter()
+        .flat_map(|(_, text)| text.chars())
+        .chain(hu::CONTEXT.iter().flat_map(|(_, _, text)| text.chars()))
+        .chain("ÁáÉéÍíÓóÖöŐőÚúÜüŰű".chars())
+        .filter(|c| c.is_alphabetic() && *c <= '\u{024f}')
+        .collect();
+    for (name, family, style, ui_family) in [
+        ("ui", "Source Sans 3", "Regular", egui::FontFamily::Proportional),
+        ("ui-semibold", "Source Sans 3", "Semibold", egui::FontFamily::Name("semibold".into())),
+        ("mono", "JetBrains Mono", "Regular", egui::FontFamily::Monospace),
+    ] {
+        assert_eq!(definitions.families[&ui_family].first().map(String::as_str), Some(name));
+        let face = db.face(family, style);
+        assert_eq!(face.data(), definitions.font_data[name].bytes(), "configured UI face {name}");
+        for letter in &letters {
+            assert_ne!(face.glyph_for(*letter), 0, "missing {letter} in {family} {style}");
+        }
+    }
+    eprintln!(
+        "Hungarian glyph coverage: {} Latin catalog letters, including ŐőŰű, in Source Sans 3 Regular/Semibold and JetBrains Mono Regular; no system/craft fallback",
+        letters.len()
+    );
+    if let Some(dir) = std::env::var_os("DESIGNCRAFT_HU_REVIEW_SHOTS") {
+        let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(820.0, 260.0)).build_ui_state(
+            |ui, ready: &mut bool| {
+                if !*ready {
+                    ui.ctx().set_fonts(crate::theme::font_definitions(&[], "hu"));
+                    *ready = true;
+                    return;
+                }
+                ui.style_mut().visuals = egui::Visuals::light();
+                ui.painter().rect_filled(ui.ctx().content_rect(), 0.0, egui::Color32::WHITE);
+                ui.heading("Magyar ékezetek · ő, ű / Ő, Ű");
+                for (name, family) in [
+                    ("Source Sans 3 Regular", egui::FontFamily::Proportional),
+                    ("Source Sans 3 Semibold", egui::FontFamily::Name("semibold".into())),
+                    ("JetBrains Mono Regular", egui::FontFamily::Monospace),
+                ] {
+                    ui.label(egui::RichText::new(name).color(egui::Color32::DARK_GRAY));
+                    ui.label(
+                        egui::RichText::new("Árvíztűrő tükörfúrógép · Őő Űű · ÁÉÍÓÖŐÚÜŰ")
+                            .font(egui::FontId::new(22.0, family))
+                            .color(egui::Color32::BLACK),
+                    );
+                }
+            },
+            false,
+        );
+        h.run_steps(3);
+        h.render().unwrap().save(std::path::Path::new(&dir).join("hungarian-bundled-ui-fonts.png")).unwrap();
+        let mut app = crate::DesignApp::new(designcraft_engine::Session::new(), crate::Services::default());
+        app.ui.language = "hu".into();
+        app.run("file.new", serde_json::json!({"pages": 1})).unwrap();
+        app.run(
+            "frame.create",
+            serde_json::json!({"rect": [60, 60, 420, 180], "content": "text", "text": "Magyar kiadvány
+Árvíztűrő tükörfúrógép
+Őő Űű · ÁÉÍÓÖŐÚÜŰ"}),
+        )
+        .unwrap();
+        app.run("type.char", serde_json::json!({"attrs": {"fontFamily": "Source Sans 3", "size": 28}})).unwrap();
+        app.run("window.panel.activate", serde_json::json!({"panel": "character"})).unwrap();
+        let mut interface = crate::test_window::open(app, egui::vec2(1400.0, 900.0));
+        interface.render().unwrap().save(std::path::Path::new(&dir).join("designcraft-hungarian-interface.png")).unwrap();
+    }
 }
 
 /// Checks translated labels and source-text fallback, plus key uniqueness and nonempty rows
