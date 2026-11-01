@@ -576,8 +576,11 @@ fn run_ui_part3(app: &mut DesignApp, id: &str, p: &Value) -> Option<Result<Value
         "view.zoomIn" | "view.zoomOut" => {
             if let Some(r) = rect {
                 // A keyboard zoom names the pointer ("at"); it counts only over the canvas.
-                let xy = p.get("at").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_f64).collect::<Vec<_>>());
-                let at = xy.filter(|v| v.len() == 2).map(|v| egui::pos2(v[0] as f32, v[1] as f32));
+                let at = p
+                    .get("at")
+                    .and_then(Value::as_array)
+                    .filter(|a| a.len() == 2)
+                    .and_then(|a| Some(egui::pos2(a.first()?.as_f64()? as f32, a.get(1)?.as_f64()? as f32)));
                 let at = at.filter(|at| r.contains(*at)).unwrap_or_else(|| r.center());
                 crate::canvas::zoom_at(app, at, if id == "view.zoomIn" { 1.5 } else { 1.0 / 1.5 });
             }
