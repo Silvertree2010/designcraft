@@ -114,7 +114,7 @@ fn hungarian_tool_buttons_translate_every_tool_and_keep_shortcuts() {
 }
 
 /// Keeps long translated flyout rows reachable by scrolling in a narrow viewport,
-/// preserving the custom shortcut and selection through actual pointer input.
+/// resetting on reopening while preserving the open scroll position, shortcut and selection.
 #[test]
 fn hungarian_flyout_scrolls_horizontally_in_narrow_windows() {
     use egui::{Event, Modifiers, PointerButton};
@@ -166,6 +166,32 @@ fn hungarian_flyout_scrolls_horizontally_in_narrow_windows() {
                 let (after, clip) = painted(&h, &shortcut);
                 assert!(clip.contains_rect(after), "scrolling must make the complete shortcut readable");
                 assert!(after.left() < before.left(), "horizontal input must move the row");
+                h.run_steps(3);
+                let (settled, clip) = painted(&h, &shortcut);
+                assert!(clip.contains_rect(settled), "an open flyout must retain its horizontal scroll position");
+                h.key_press(egui::Key::Escape);
+                h.run_steps(2);
+                assert!(h.state().app.ui.flyout.is_none());
+                // Reopen through the toolbar input path, without changing the stored scroll state.
+                let at = rect(&h, "Téglalapkeret eszköz (F)").center();
+                h.input_mut().events.push(Event::PointerMoved(at));
+                for pressed in [true, false] {
+                    h.input_mut().events.push(Event::PointerButton {
+                        pos: at,
+                        button: PointerButton::Secondary,
+                        pressed,
+                        modifiers: Modifiers::NONE,
+                    });
+                }
+                h.run_steps(3);
+                assert_eq!(h.state().app.ui.flyout, Some(gi));
+                let (reopened, clip) = painted(&h, label);
+                assert!(clip.contains_rect(reopened), "a reopened flyout must show the complete translated label");
+                assert!((reopened.left() - label_bounds.left()).abs() < 0.5, "reopening must return to the initial left edge");
+                review_shot(&mut h, &format!("flyout-{width}-double-{double}-reopened.png"));
+                wheel(&mut h, area.center(), vec2(-1000.0, 0.0));
+                let (rescrolled, clip) = painted(&h, &shortcut);
+                assert!(clip.contains_rect(rescrolled), "a reopened flyout must still allow scrolling to the shortcut");
             } else {
                 assert!(clip.contains_rect(before));
             }
