@@ -1,6 +1,6 @@
 # Localization parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-30 · **Change:** minor (current-main integration with retained catalogs and regression tests; older catalog counts retain their dated measurement) · **Target:** Adobe InDesign 2026 (21.6)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-11-01 · **Change:** minor (Hungarian interface catalog, bundled-font coverage and flyout regression checks) · **Target:** Adobe InDesign 2026 (21.6)
 
 Per-language status of the DesignCraft interface and of document typesetting in each script.
 Script-specific typesetting detail: [cjk.md](cjk.md), [cjk-typography.md](cjk-typography.md),
@@ -54,55 +54,32 @@ caption, table row/column movement and row-height distribution now use the exist
 catalog. Print, import options and an active table were rendered in Japanese and English with
 craft-fonts. The language totals above retain their dated measurement; this is a targeted fix.
 
-Hungarian follow-up (2026-10-17): `hu.rs` adds **1,917 entries and two context-specific
-captions**, including the 37 tool names. This is a partial interface catalog based on an earlier
-source snapshot, not a new coverage measurement against current main. It was prepared with AI
-assistance and initially reviewed by a native Hungarian contributor with over 30 years of DTP
-experience; further terminology and in-context review is welcome. Preferences lists `Magyar`;
-untranslated/new strings fall back to English. Hungarian spelling and hyphenation are separate
-follow-up work and are not enabled by selecting this interface language.
-Review corrections (2026-10-20) distinguish numbers from counts and text columns from grid
-columns, use formal Hungarian address consistently, and align translated menu paths with
-their visible labels. These corrections do not add new catalog keys or change coverage.
-Test integration (2026-10-23) registers Hungarian in the shared catalog checks and restores
-assertions from both merge parents. That snapshot has **1,904 entries and four context
-captions** after removing 11 untranslated interface-language names (the selector displays their
-native names directly) and two unused internal tint keys. Seventeen live UI labels are retained
-and added to the integrity test's known-label list. No used Hungarian translation was removed.
+Hungarian interface (2026-11-01): `hu.rs` contains **1,906 entries and four context-specific
+captions**, including all 37 tool names. The initial catalog was prepared with AI assistance
+and personally reviewed in the app by **Veress Róbert**, a native Hungarian speaker with over
+30 years of DTP experience. Further terminology and in-context feedback is welcome. This is a
+partial catalog, not a new coverage measurement against current main: uncatalogued strings
+fall back to English. Preferences lists `Magyar`; interface selection does not enable the
+separate spelling and hyphenation work in #1484.
 
-Data Merge follow-up (2026-10-25): `Arrangement` is translated as `Elrendezés`, bringing the
-Hungarian catalog to **1,905 entries and four context captions**. The shared all-language
-arrangement check and the Hungarian catalog and toolbar tests are retained alongside the
-main-branch egui API update. This is a targeted addition, not a new coverage measurement.
+The interface uses bundled **Source Sans 3 Regular** and **Source Sans 3 Semibold**; monospace
+labels use **JetBrains Mono Regular** (`assets/fonts/`, registered by `theme::font_definitions`).
+`hungarian_catalog_glyphs_exist_in_the_bundled_ui_fonts` checks the actual configured font
+bytes, every Latin letter used by the catalog and all Hungarian accented vowels in both cases,
+including **ŐőŰű**, with system and optional craft-fonts fallbacks disabled. No new font asset
+or font dependency is needed.
 
-Georgian menu follow-up (2026-10-25): `File Info…` and `Check for Updates…` now have
-Georgian catalog entries. The existing complete-menu translation assertion is unchanged.
-This targeted addition retains the dated coverage figures below; the two new captions have
-not had a separate native-speaker review.
-
-Module-layout integration (2026-10-27): catalog lookup stays in `i18n.rs`, while the shared
-table and localization tests live in `i18n/table.rs` and `i18n/tests.rs`. Menu and toolbar
-regressions from both branches are retained in `menus/tests.rs` and `toolbar/tests.rs`.
-Hungarian catalog contents and the dated coverage measurements are unchanged. Toolbar
-coverage follows the current platform-specific keymap captions and checks a user-assigned
-chord alongside translated flyout text; row sizing measures the displayed shortcut.
-
-Main integration (2026-10-30): retain every prior Hungarian entry and both branches’
-localization, menu and toolbar regressions while adopting upstream’s current file-dialog test
-harness and toolbar proxy refactor. Add `Show/Hide Depth Ruler` as `Mélységmérő
-megjelenítése/elrejtése`, bringing the catalog to **1,906 entries and four context captions**.
-The upstream all-language depth-ruler assertion is retained. The unchanged complete Georgian
-menu assertions run through a helper so the existing language-switch test meets upstream’s
-new complexity limit. The two Georgian menu captions now also exist in main; retain each
-identical translation once, keeping the direct lookup and complete-menu assertions. The
-progress log keeps both branches’ dated entries; this targeted addition is not a new coverage
-measurement.
+Hungarian regressions cover placeholder/context integrity, formal address and count/column
+terminology, language persistence, matching menu paths, translated tool labels and real
+right-click flyouts in both Tools-panel layouts. Narrow-window coverage exercises horizontal
+scrolling, complete label/shortcut accessibility and selecting a scrolled row at 180 and
+240 points; the existing wide-window checks keep their assertions.
 
 ## Other shipped languages
 
 | Language | Code | UI strings translated | Status |
 |---|---|---|---|
-| Hungarian | hu | 1,906 entries + 4 context captions (2026-10-30); initial catalog native-reviewed | partial |
+| Hungarian | hu | 1,906 entries + 4 context captions (2026-11-01); initial catalog native-reviewed | partial |
 | Czech | cs | 1,722 (99%), plural categories handled | partial |
 | Italian | it | 1,464 (85%) | partial |
 | Ukrainian | uk | 1,432 (83%), plural categories handled | partial |
@@ -139,13 +116,7 @@ German variants have no automatic hyphenation; their German shaping and quotes a
 
 | Date | Change | Summary |
 |---|---|---|
-| 2026-10-30 | minor | Integrate current main; retain both branches’ entries/tests; add Hungarian Depth Ruler caption (1,906 entries + four context captions) |
-| 2026-10-27 | minor | Adopt shared module layout; preserve both parents' tests and all Hungarian catalog entries |
-| 2026-10-25 | minor | Hungarian Data Merge arrangement caption added; 1,905 entries and four context captions; both merge parents' tests retained |
-| 2026-10-25 | minor | Georgian File Info and Check for Updates captions added; complete-menu regression retained |
-| 2026-10-20 | minor | Hungarian review: four context captions, formal address, consistent menu paths; corrected other-language count to six |
-| 2026-10-17 | minor | Hungarian (`hu`) interface added: 1,917 entries and two context captions; initial native-speaker review |
-| 2026-10-23 | minor | Hungarian test integration restored; 1,904 active catalog entries and four context captions after removing unused keys |
+| 2026-11-01 | minor | Initial Hungarian interface: 1,906 entries, four context captions, native review, bundled-font glyph coverage and wide/narrow flyout regressions |
 | 2026-10-11 | minor | Localized Japanese print, import and table controls; checked Japanese and English renders |
 | 2026-10-14 | minor | Georgian (`ka`) interface added |
 | 2026-10-10 | major | Created: catalogs measured (1,724 strings), the twelve key languages plus Italian and Ukrainian |
