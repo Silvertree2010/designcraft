@@ -451,6 +451,11 @@ mod tests {
         assert_eq!(h("leesvaardigheid"), "lees-vaar-dig-heid");
         assert_eq!(h("zelfvertrouwen"), "zelf-ver-trou-wen");
         assert_eq!(h("Ontwikkelen"), "Ont-wik-ke-len");
+        // Long compounds break at their parts and at the syllables inside them.
+        assert_eq!(h("arbeidsongeschiktheidsverzekering"), "ar-beids-on-ge-schikt-heids-ver-ze-ke-ring");
+        assert_eq!(h("ziekenhuisopname"), "zie-ken-huis-op-na-me");
+        assert_eq!(h("gemeenteraadsverkiezingen"), "ge-meen-te-raads-ver-kie-zin-gen");
+        assert_eq!(h("kinderdagverblijf"), "kin-der-dag-ver-blijf");
     }
 
     #[test]
