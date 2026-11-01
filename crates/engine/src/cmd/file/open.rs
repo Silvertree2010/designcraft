@@ -435,6 +435,12 @@ mod open_bytes_tests {
             ("Brochure.v2", "Brochure.v2"),
             ("Brochure.designcraft.designcraft", "Brochure.designcraft"),
             (".designcraft", ".designcraft"),
+            // Names that aren't ASCII: cutting the extension's length off the end of the last one
+            // would land inside its `é`.
+            ("Präsentation.designcraft", "Präsentation"),
+            ("日本.DESIGNCRAFT", "日本"),
+            ("é", "é"),
+            ("édesigncraft", "édesigncraft"),
         ] {
             let r = s.execute("file.openBytes", &json!({"name": name, "base64": native["base64"]})).unwrap();
             let st = &s.documents()[r["index"].as_u64().unwrap() as usize];
